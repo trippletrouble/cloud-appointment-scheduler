@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Appointment Coordination</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 20px;">
+
+<div style="max-width: 700px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+  <h1>Create Appointment Coordination</h1>
+
+  <div th:if="${successMessage}" style="background-color: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+    <p th:text="${successMessage}">Success message here.</p>
+  </div>
+  <div th:if="${errorMessage}" style="background-color: #f2dede; color: #a94442; border: 1px solid #ebccd1; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+    <p th:text="${errorMessage}">Error message here.</p>
+  </div>
+
+  <form action="#" th:action="@{/create}" th:object="${appointmentCoordination}" method="post">
+    <div style="margin-bottom: 10px;">
+      <label for="proposerName">Your Name:</label><br/>
+      <input type="text" id="proposerName" th:field="*{proposerName}" required style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+    </div>
+    <div style="margin-bottom: 10px;">
+      <label for="title">Event Title:</label><br/>
+      <input type="text" id="title" th:field="*{title}" required style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+    </div>
+    <div style="margin-bottom: 15px;">
+      <label for="description">Event Description:</label><br/>
+      <textarea id="description" th:field="*{description}" rows="3" style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+    </div>
+
+    <h2>Time Suggestions (Provide 1 to 3)</h2>
+
+    <div style="border: 1px solid #eee; padding: 15px; margin-top: 10px; margin-bottom:10px; border-radius: 4px;">
+      <h3>Suggestion 1</h3>
+      <div style="margin-bottom: 5px;">
+        <label for="suggestionDateTime1">Date and Time:</label><br/>
+        <input type="datetime-local" id="suggestionDateTime1" name="suggestionDateTime1"
+               th:value="${appointmentCoordination.suggestions != null && appointmentCoordination.suggestions.size() > 0 && appointmentCoordination.suggestions[0].dateTime != null ? #temporals.format(appointmentCoordination.suggestions[0].dateTime, 'yyyy-MM-dd HH:mm') : ''}" style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+      </div>
+      <div>
+        <label for="suggestionDescription1">Description (Optional):</label><br/>
+        <input type="text" id="suggestionDescription1" name="suggestionDescription1"
+               th:value="${appointmentCoordination.suggestions != null && appointmentCoordination.suggestions.size() > 0 ? appointmentCoordination.suggestions[0].description : ''}" style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+      </div>
+    </div>
+
+    <div style="border: 1px solid #eee; padding: 15px; margin-top: 10px; margin-bottom:10px; border-radius: 4px;">
+      <h3>Suggestion 2</h3>
+      <div style="margin-bottom: 5px;">
+        <label for="suggestionDateTime2">Date and Time:</label><br/>
+        <input type="datetime-local" id="suggestionDateTime2" name="suggestionDateTime2"
+               th:value="${appointmentCoordination.suggestions != null && appointmentCoordination.suggestions.size() > 1 && appointmentCoordination.suggestions[1].dateTime != null ? #temporals.format(appointmentCoordination.suggestions[1].dateTime, 'yyyy-MM-dd HH:mm') : ''}" style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+      </div>
+      <div>
+        <label for="suggestionDescription2">Description (Optional):</label><br/>
+        <input type="text" id="suggestionDescription2" name="suggestionDescription2"
+               th:value="${appointmentCoordination.suggestions != null && appointmentCoordination.suggestions.size() > 1 ? appointmentCoordination.suggestions[1].description : ''}" style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+      </div>
+    </div>
+
+    <div style="border: 1px solid #eee; padding: 15px; margin-top: 10px; margin-bottom:10px; border-radius: 4px;">
+      <h3>Suggestion 3</h3>
+      <div style="margin-bottom: 5px;">
+        <label for="suggestionDateTime3">Date and Time:</label><br/>
+        <input type="datetime-local" id="suggestionDateTime3" name="suggestionDateTime3"
+               th:value="${appointmentCoordination.suggestions != null && appointmentCoordination.suggestions.size() > 2 && appointmentCoordination.suggestions[2].dateTime != null ? #temporals.format(appointmentCoordination.suggestions[2].dateTime, 'yyyy-MM-dd HH:mm') : ''}" style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+      </div>
+      <div>
+        <label for="suggestionDescription3">Description (Optional):</label><br/>
+        <input type="text" id="suggestionDescription3" name="suggestionDescription3"
+               th:value="${appointmentCoordination.suggestions != null && appointmentCoordination.suggestions.size() > 2 ? appointmentCoordination.suggestions[2].description : ''}" style="width: calc(100% - 12px); padding: 5px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;" />
+      </div>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <button type="submit" style="background-color: #5cb85c; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">Create Coordination</button>
+    </div>
+  </form>
+</div>
+</body>
+</html>
