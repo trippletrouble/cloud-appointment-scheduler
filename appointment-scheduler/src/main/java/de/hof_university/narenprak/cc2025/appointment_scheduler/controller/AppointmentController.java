@@ -74,10 +74,10 @@ public class AppointmentController {
                 return "create-appointment";
             }
 
-    @GetMapping("/reply/{coordinationId}")
-    public String showReplyForm(@PathVariable String coordinationId, Model model) {
-        Optional<AppointmentCoordination> optCoordination = appointmentCoordinationRepository.findById(coordinationId);
-        if (optCoordination.isPresent()) {
+        @GetMapping("/reply/{coordinationId}")
+            public String showReplyForm(@PathVariable String coordinationId, Model model) {
+            Optional<AppointmentCoordination> optCoordination = appointmentCoordinationRepository.findById(coordinationId);
+            if (optCoordination.isPresent()) {
             AppointmentCoordination coordination = optCoordination.get();
             model.addAttribute("coordination", coordination);
             model.addAttribute("participantResponse", new ParticipantResponse(coordinationId, ""));
@@ -88,18 +88,18 @@ public class AppointmentController {
             return "create-appointment";
         }
     }
-    @PostMapping("/reply/{coordinationId}")
-    public String processReply(@PathVariable String coordinationId,
+        @PostMapping("/reply/{coordinationId}")
+            public String processReply(@PathVariable String coordinationId,
                                @ModelAttribute ParticipantResponse participantResponse,
                                @RequestParam Map<String, String> allRequestParams,
                                Model model) {
-        participantResponse.setCoordinationId(coordinationId);
-        Map<Integer, Boolean> availabilityMap = new HashMap<>();
-        int numberOfSuggestions = 0;
-        Optional<AppointmentCoordination> optCoord = appointmentCoordinationRepository.findById(coordinationId);
-        if (optCoord.isPresent()) {
+            participantResponse.setCoordinationId(coordinationId);
+            Map<Integer, Boolean> availabilityMap = new HashMap<>();
+            int numberOfSuggestions = 0;
+            Optional<AppointmentCoordination> optCoord = appointmentCoordinationRepository.findById(coordinationId);
+            if (optCoord.isPresent()) {
             numberOfSuggestions = optCoord.get().getSuggestions().size();
-        } else {
+            } else {
             model.addAttribute("errorMessage", "Appointment coordination not found. Reply cannot be processed.");
             model.addAttribute("appointmentCoordination", new AppointmentCoordination());
             return "create-appointment";
@@ -128,15 +128,15 @@ public class AppointmentController {
         participantResponseRepository.save(participantResponse);
         return "redirect:/reply/" + coordinationId + "?replied=true";
     }
-    @GetMapping(value = "/reply/{coordinationId}", params = "replied")
-    public String showReplyFormWithSuccess(@PathVariable String coordinationId, Model model) {
-        Optional<AppointmentCoordination> optCoordination = appointmentCoordinationRepository.findById(coordinationId);
-        if (optCoordination.isPresent()) {
+        @GetMapping(value = "/reply/{coordinationId}", params = "replied")
+            public String showReplyFormWithSuccess(@PathVariable String coordinationId, Model model) {
+            Optional<AppointmentCoordination> optCoordination = appointmentCoordinationRepository.findById(coordinationId);
+            if (optCoordination.isPresent()) {
             model.addAttribute("coordination", optCoordination.get());
             model.addAttribute("participantResponse", new ParticipantResponse(coordinationId, ""));
             model.addAttribute("replySuccessMessage", "Thank you! Your response has been recorded.");
             return "reply-appointment";
-        } else {
+             } else {
             model.addAttribute("errorMessage", "Appointment coordination not found with ID: " + coordinationId);
             model.addAttribute("appointmentCoordination", new AppointmentCoordination());
             return "create-appointment";
