@@ -1,23 +1,35 @@
 package de.hof_university.narenprak.cc2025.appointment_scheduler.controller;
-import de.hof_university.narenprak.cc2025.appointment_scheduler.model.*;
-import de.hof_university.narenprak.cc2025.appointment_scheduler.repository.*;
+
+import de.hof_university.narenprak.cc2025.appointment_scheduler.model.AppointmentCoordination;
+import de.hof_university.narenprak.cc2025.appointment_scheduler.model.ParticipantResponse;
+import de.hof_university.narenprak.cc2025.appointment_scheduler.model.TimeSuggestion;
+
+import de.hof_university.narenprak.cc2025.appointment_scheduler.repository.AppointmentCoordinationRepository;
+import de.hof_university.narenprak.cc2025.appointment_scheduler.repository.ParticipantResponseRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.annotation.Id;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 
 @Controller
 public class AppointmentController {
     @Autowired
     private AppointmentCoordinationRepository appointmentCoordinationRepository;
+    @Autowired
+    private ParticipantResponseRepository participantResponseRepository;
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {
@@ -61,6 +73,77 @@ public class AppointmentController {
                 model.addAttribute("successMessage", "Appointment coordination created successfully!");
                 return "create-appointment";
             }
+
+    @GetMapping("/reply/{coordinationId}")
+    public String showReplyForm(@PathVariable String coordinationId, Model model) {
+        Optional<AppointmentCoordination> optCoordination = appointmentCoordinationRepository.findById(coordinationId);
+        if (optCoordination.isPresent()) {
+            AppointmentCoordination coordination = optCoordination.get();
+            model.addAttribute("coordination", coordination);
+            model.addAttribute("participantResponse", new ParticipantResponse(coordinationId, ""));
+            return "reply-appointment";
+        } else {
+            model.addAttribute("errorMessage", "Appointment coordination not found with ID: " + coordinationId);
+            model.addAttribute("appointmentCoordination", new AppointmentCoordination());
+            return "create-appointment";
         }
+    }
+    @PostMapping("/reply/{coordinationId}")
+    public String processReply(@PathVariable String coordinationId,
+                               @ModelAttribute ParticipantResponse participantResponse,
+                               @RequestParam Map<String, String> allRequestParams,
+                               Model model) {
+        participantResponse.setCoordinationId(coordinationId);
+        Map<Integer, Boolean> availabilityMap = new HashMap<>();
+        int numberOfSuggestions = 0;
+        Optional<AppointmentCoordination> optCoord = appointmentCoordinationRepository.findById(coordinationId);
+        if (optCoord.isPresent()) {
+            numberOfSuggestions = optCoord.get().getSuggestions().size();
+        } else {
+            model.addAttribute("errorMessage", "Appointment coordination not found. Reply cannot be processed.");
+            model.addAttribute("appointmentCoordination", new AppointmentCoordination());
+            return "create-appointment";
+        }
+
+        for (int i = 0; i < numberOfSuggestions; i++) {
+            String availabilityParamKey = "availability_" + i;
+            boolean isAvailable = "true".equalsIgnoreCase(allRequestParams.get(availabilityParamKey)) ||
+                    "on".equalsIgnoreCase(allRequestParams.get(availabilityParamKey));
+            availabilityMap.put(i, isAvailable);
+        }
+        participantResponse.setAvailability(availabilityMap);
+
+        if (participantResponse.getParticipantName() == null || participantResponse.getParticipantName().trim().isEmpty()) {
+            model.addAttribute("replyError", "Participant name cannot be empty.");
+            if (optCoord.isPresent()) {
+                model.addAttribute("coordination", optCoord.get());
+                model.addAttribute("participantResponse", participantResponse);
+            } else {
+                model.addAttribute("errorMessage", "Appointment coordination not found. Reply form cannot be displayed.");
+                model.addAttribute("appointmentCoordination", new AppointmentCoordination());
+                return "create-appointment";
+            }
+            return "reply-appointment";
+        }
+        participantResponseRepository.save(participantResponse);
+        return "redirect:/reply/" + coordinationId + "?replied=true";
+    }
+    @GetMapping(value = "/reply/{coordinationId}", params = "replied")
+    public String showReplyFormWithSuccess(@PathVariable String coordinationId, Model model) {
+        Optional<AppointmentCoordination> optCoordination = appointmentCoordinationRepository.findById(coordinationId);
+        if (optCoordination.isPresent()) {
+            model.addAttribute("coordination", optCoordination.get());
+            model.addAttribute("participantResponse", new ParticipantResponse(coordinationId, ""));
+            model.addAttribute("replySuccessMessage", "Thank you! Your response has been recorded.");
+            return "reply-appointment";
+        } else {
+            model.addAttribute("errorMessage", "Appointment coordination not found with ID: " + coordinationId);
+            model.addAttribute("appointmentCoordination", new AppointmentCoordination());
+            return "create-appointment";
+        }
+    }
+
+}
+
 
 
