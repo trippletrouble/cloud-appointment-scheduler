@@ -3,7 +3,7 @@ package de.hof_university.narenprak.cc2025.appointment_scheduler.controller;
 import de.hof_university.narenprak.cc2025.appointment_scheduler.model.AppointmentCoordination;
 import de.hof_university.narenprak.cc2025.appointment_scheduler.model.ParticipantResponse;
 import de.hof_university.narenprak.cc2025.appointment_scheduler.model.TimeSuggestion;
-
+import de.hof_university.narenprak.cc2025.appointment_scheduler.model.AppointmentOverviewItem;
 import de.hof_university.narenprak.cc2025.appointment_scheduler.repository.AppointmentCoordinationRepository;
 import de.hof_university.narenprak.cc2025.appointment_scheduler.repository.ParticipantResponseRepository;
 
@@ -141,6 +141,19 @@ public class AppointmentController {
             model.addAttribute("appointmentCoordination", new AppointmentCoordination());
             return "create-appointment";
         }
+    }
+    @GetMapping("/overview") // This tells Spring to use this method for GET requests to /overview
+    public String showOverviewPage(Model model) {
+        List<AppointmentCoordination> allCoordinations = appointmentCoordinationRepository.findAll();
+        List<AppointmentOverviewItem> overviewItems = new ArrayList<>(); // Assuming AppointmentOverviewItem DTO is created
+
+        for (AppointmentCoordination coordination : allCoordinations) {
+            List<ParticipantResponse> responses = participantResponseRepository.findByCoordinationId(coordination.getId());
+            overviewItems.add(new AppointmentOverviewItem(coordination, responses));
+        }
+
+        model.addAttribute("overviewItems", overviewItems);
+        return "overview-page"; // This must match the name of your Thymeleaf HTML file
     }
 
 }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment Coordination Overview</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 20px;">
+
+<div style="max-width: 900px; margin: auto; padding: 20px;">
+  <h1>Appointment Coordination Overview</h1>
+
+  <div style="margin-bottom: 20px;">
+    <a th:href="@{/create}" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">Create New Appointment</a>
+  </div>
+
+  <div th:if="${overviewItems.isEmpty()}" style="padding: 15px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+    <p>No appointment coordinations found. Why not <a th:href="@{/create}">create one</a>?</p>
+  </div>
+
+  <div th:unless="${overviewItems.isEmpty()}">
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ccc;">
+      <thead>
+      <tr style="background-color: #f2f2f2;">
+        <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Title</th>
+        <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Proposed by</th>
+        <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Created At</th>
+        <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Status/Action</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="item : ${overviewItems}" style="border-bottom: 1px solid #eee;">
+        <td style="border: 1px solid #ccc; padding: 8px;" th:text="${item.coordination.title}">Sample Title</td>
+        <td style="border: 1px solid #ccc; padding: 8px;" th:text="${item.coordination.proposerName}">Proposer</td>
+        <td style="border: 1px solid #ccc; padding: 8px;" th:text="${#temporals.format(item.coordination.createdAt, 'dd-MMM-yyyy HH:mm')}">Creation Date</td>
+        <td style="border: 1px solid #ccc; padding: 8px;">
+          <a th:if="${!item.hasReplies}" th:href="@{/reply/{id}(id=${item.coordination.id})}" style="background-color: #ffc107; color: black; padding: 5px 10px; text-decoration: none; border-radius: 4px;">Reply</a>
+          <span th:if="${item.hasReplies}" style="color: #28a745; font-weight: bold;">Replied (<span th:text="${item.replyCount}">0</span>)</span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>
