@@ -1,0 +1,57 @@
+services:
+  app1:
+    build:
+      context: ./appointment-scheduler
+    container_name: appointment-app-1
+    networks:
+      - frontend-network
+      - backend-network
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb_service:27017/appointment_db
+    depends_on:
+      - mongodb_service
+
+  app2:
+    build:
+      context: ./appointment-scheduler
+    container_name: appointment-app-2
+    networks:
+      - frontend-network
+      - backend-network
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb_service:27017/appointment_db
+    depends_on:
+      - mongodb_service
+
+  mongodb_service:
+    build:
+      context: ./mongodb_custom
+    container_name: mongodb_custom_container
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - backend-network
+
+  loadbalancer:
+    image: haproxy:latest
+    container_name: haproxy_lb
+    ports:
+      - "80:80"
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - frontend-network
+    depends_on:
+      - app1
+      - app2
+
+networks:
+  frontend-network:
+    driver: bridge
+  backend-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
