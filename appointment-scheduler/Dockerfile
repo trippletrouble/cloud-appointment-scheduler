@@ -4,6 +4,7 @@ COPY pom.xml .
 RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean install -DskipTests
+
 FROM amazoncorretto:17-al2-jdk
 
 WORKDIR /app
