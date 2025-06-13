@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Results</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 20px;">
+
+<div style="max-width: 900px; margin: auto; padding: 20px;">
+    <div style="margin-bottom: 20px;">
+        <a th:href="@{/overview}" style="padding: 8px 12px; text-decoration: none; background-color: #6c757d; color: white; border-radius: 4px;">&larr; Back to Overview</a>
+    </div>
+
+    <div th:if="${coordination}" style="background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h1 style="margin-top: 0;"><span th:text="${coordination.title}">Coordination Title</span></h1>
+        <p><strong>Proposed by:</strong> <span th:text="${coordination.proposerName}">Proposer</span></p>
+        <p><strong>Description:</strong> <span th:text="${coordination.description}">Description</span></p>
+    </div>
+
+    <div th:if="${coordination}">
+        <h2>Results Summary</h2>
+
+        <div th:each="suggestion, iterStat : ${coordination.suggestions}" style="margin-bottom: 25px; border: 1px solid #ccc; padding: 15px; border-radius: 8px;">
+            <h3 style="margin-top: 0;">
+                Suggestion <span th:text="${iterStat.count}">#</span>:
+                <span th:text="${#temporals.format(suggestion.dateTime, 'EEEE, MMMM d, yyyy HH:mm')}">Date and Time</span>
+            </h3>
+
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <h4 style="color: #28a745;">Available</h4>
+                    <ul>
+                        <th:block th:each="response : ${responses}">
+                            <li th:if="${response.availability[iterStat.index] == true}" th:text="${response.participantName}">Participant Name</li>
+                        </th:block>
+                    </ul>
+                </div>
+
+                <div style="flex: 1;">
+                    <h4 style="color: #dc3545;">Unavailable</h4>
+                    <ul>
+                        <th:block th:each="response : ${responses}">
+                            <li th:if="${response.availability[iterStat.index] == false}" th:text="${response.participantName}">Participant Name</li>
+                        </th:block>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
+                <h4>Comments</h4>
+                <div th:each="response : ${responses}">
+                    <p th:if="${response.comment != null && !response.comment.trim().isEmpty()}">
+                        <strong><span th:text="${response.participantName}"></span>:</strong>
+                        "<em th:text="${response.comment}"></em>"
+                    </p>
+                </div>
+                <p th:if="${responses.?[comment != null and !comment.trim().isEmpty()].size() == 0}">
+                    <em>No comments submitted.</em>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div th:unless="${coordination}">
+        <p>Could not load results for this appointment.</p>
+    </div>
+</div>
+
+</body>
+</html>

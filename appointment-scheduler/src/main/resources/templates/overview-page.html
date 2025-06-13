@@ -37,6 +37,12 @@
           <a th:if="${!item.hasReplies}" th:href="@{/reply/{id}(id=${item.coordination.id})}" style="background-color: #ffc107; color: black; padding: 5px 10px; text-decoration: none; border-radius: 4px;">Reply</a>
           <span th:if="${item.hasReplies}" style="color: #28a745; font-weight: bold;">Replied (<span th:text="${item.replyCount}">0</span>)</span>
         </td>
+        <td style="border: 1px solid #ccc; padding: 8px;">
+          <a th:if="${!item.hasReplies}" th:href="@{/reply/{id}(id=${item.coordination.id})}" style="background-color: #ffc107; color: black; padding: 5px 10px; text-decoration: none; border-radius: 4px;">Reply</a>
+          <a th:if="${item.hasReplies}" th:href="@{/results/{id}(id=${item.coordination.id})}" style="background-color: #17a2b8; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px;">
+            View Results (<span th:text="${item.replyCount}">0</span>)
+          </a>
+        </td>
       </tr>
       </tbody>
     </table>

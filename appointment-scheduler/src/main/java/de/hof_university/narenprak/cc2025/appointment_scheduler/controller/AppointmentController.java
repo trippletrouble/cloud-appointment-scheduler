@@ -155,6 +155,24 @@ public class AppointmentController {
         model.addAttribute("overviewItems", overviewItems);
         return "overview-page"; // This must match the name of your Thymeleaf HTML file
     }
+    @GetMapping("/results/{coordinationId}")
+    public String showResultsPage(@PathVariable String coordinationId, Model model) {
+        Optional<AppointmentCoordination> optCoordination = appointmentCoordinationRepository.findById(coordinationId);
+
+        if (optCoordination.isPresent()) {
+            AppointmentCoordination coordination = optCoordination.get();
+            List<ParticipantResponse> responses = participantResponseRepository.findByCoordinationId(coordinationId);
+
+            model.addAttribute("coordination", coordination);
+            model.addAttribute("responses", responses);
+
+            return "results-page"; // Name der neuen Thymeleaf-Vorlage
+        } else {
+            model.addAttribute("errorMessage", "Appointment coordination not found with ID: " + coordinationId);
+            model.addAttribute("overviewItems", new ArrayList<>());
+            return "overview-page"; //
+        }
+    }
 
 }
 
