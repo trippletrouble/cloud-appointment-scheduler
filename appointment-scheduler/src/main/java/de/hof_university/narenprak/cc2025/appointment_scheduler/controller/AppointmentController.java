@@ -142,7 +142,7 @@ public class AppointmentController {
             return "create-appointment";
         }
     }
-    @GetMapping("/overview") // This tells Spring to use this method for GET requests to /overview
+    @GetMapping("/overview")
     public String showOverviewPage(Model model) {
         List<AppointmentCoordination> allCoordinations = appointmentCoordinationRepository.findAll();
         List<AppointmentOverviewItem> overviewItems = new ArrayList<>(); // Assuming AppointmentOverviewItem DTO is created
@@ -153,7 +153,7 @@ public class AppointmentController {
         }
 
         model.addAttribute("overviewItems", overviewItems);
-        return "overview-page"; // This must match the name of your Thymeleaf HTML file
+        return "overview-page";
     }
     @GetMapping("/results/{coordinationId}")
     public String showResultsPage(@PathVariable String coordinationId, Model model) {
@@ -166,11 +166,11 @@ public class AppointmentController {
             model.addAttribute("coordination", coordination);
             model.addAttribute("responses", responses);
 
-            return "results-page"; // Name der neuen Thymeleaf-Vorlage
+            return "results-page";
         } else {
             model.addAttribute("errorMessage", "Appointment coordination not found with ID: " + coordinationId);
             model.addAttribute("overviewItems", new ArrayList<>());
-            return "overview-page"; //
+            return "overview-page";
         }
     }
 

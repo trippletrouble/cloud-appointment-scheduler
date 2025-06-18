@@ -1,6 +1,6 @@
-package de.hof_university.narenprak.cc2025.appointment_scheduler.model; // Or your model package
+package de.hof_university.narenprak.cc2025.appointment_scheduler.model; 
 
-import java.util.List; // Ensure this import is present
+import java.util.List;
 
 public class AppointmentOverviewItem {
     private AppointmentCoordination coordination;
