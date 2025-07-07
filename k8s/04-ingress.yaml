@@ -5,7 +5,7 @@ metadata:
   name: appointment-app-ingress
 spec:
   rules:
-    - host: appointment.com
+    - host: appointment-app.naren
       http:
         paths:
           - path: /
