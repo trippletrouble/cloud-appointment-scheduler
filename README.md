@@ -1,93 +1,150 @@
-# CC2025_Prakash
+# Appointment Coordination Application
 
+This project is a simple web application for coordinating appointments. Users can propose an event with several time slots, and other participants can reply with their availability.
 
+## Overview
 
-## Getting started
+The application consists of three main pages:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+1.  **Create Page (`/create`):** Allows a user to propose a new appointment coordination. The user can provide a title, a description, their name, and between one and three time suggestions.
+2.  **Reply Page (`/reply/{id}`):** Allows a participant to view the details of a specific appointment and submit their availability for the suggested time slots.
+3.  **Overview Page (`/overview`):** Displays a list of all created appointment coordinations, shows their status (e.g., "Replied" or a button to reply), and provides navigation to the relevant pages.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## How to Run
 
-## Add your files
+There are four main ways to run this application: locally via an IDE, with Docker Compose, or in a Kubernetes cluster (Minikube) using either HAProxy or Ingress.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### 1. Running Locally (from IDE)
 
-```
-cd existing_repo
-git remote add origin https://gitlab.hof-university.de/narenprak/cc2025_prakash.git
-git branch -M main
-git push -uf origin main
-```
+This is ideal for development and quick tests.
 
-## Integrate with your tools
+1.  **Start a local MongoDB instance:**
+    ```bash
+    # Ensure no other process is using port 27017
+    docker run --name dev-mongo -p 127.0.0.1:27017:27017 -d mongo
+    ```
+2.  **Configure `application.properties`:**
+    Make sure the `spring.data.mongodb.uri` in `src/main/resources/application.properties` points to your local instance:
+    ```properties
+    spring.data.mongodb.uri=mongodb://127.0.0.1:27017/appointment_db
+    ```
+3.  **Run the Application:**
+    Start the `AppointmentSchedulerApplication` main class from your IDE (e.g., IntelliJ IDEA). The application will be available at `http://localhost:8080`.
 
-- [ ] [Set up project integrations](https://gitlab.hof-university.de/narenprak/cc2025_prakash/-/settings/integrations)
+### 2. Running with Docker Compose & HAProxy
 
-## Collaborate with your team
+This method starts the complete architecture with two app instances, a database, and a load balancer on your local machine. This uses the separate services approach.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+1.  **Prerequisites:**
+    * Docker and Docker Compose installed.
+    * Ensure port 80 and 27017 are free on your machine. Stop any other running MongoDB containers (like `dev-mongo`).
+2.  **Build and Start:**
+    Navigate to the project's root directory (where `docker-compose.yml` is located) and run:
+    ```bash
+    docker-compose up --build -d
+    ```
+    The `--build` flag ensures that your custom `appointment-app` and `mongodb_custom` images are built from their respective Dockerfiles.
+3.  **Access the Application:**
+    * **Main App:** `http://localhost/overview`
+    * **HAProxy Stats:** `http://localhost/haproxy?stats`
+    * **Database (with Compass):** Connect to `mongodb://127.0.0.1:27017`
+4.  **Stop the Environment:**
+    ```bash
+    docker-compose down -v
+    ```
 
-## Test and Deploy
+### 3. Running with Kubernetes (Minikube) & HAProxy
 
-Use the built-in continuous integration in GitLab.
+This method deploys the application to Kubernetes using HAProxy and a `NodePort` service to expose the application.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+1.  **Prerequisites:**
+    * Minikube installed and running (`minikube start --memory 4g --cpus 2`).
+2.  **Build and Load Images into Minikube:**
+    ```bash
+    # Build the images first
+    docker build -t appointment-app-img ./appointment-scheduler
+    docker build -t custom-mongo-img ./mongodb_custom
+    
+    # Load them into Minikube
+    minikube image load appointment-app-img
+    minikube image load custom-mongo-img
+    ```
+3.  **Apply Kubernetes Configurations:**
+    This command applies the configurations for MongoDB, the app, and HAProxy. **It ignores the `04-ingress.yaml` file.**
+    ```bash
+    kubectl apply -f k8s/01-mongodb.yaml
+    kubectl apply -f k8s/02-appointment-app.yaml
+    kubectl apply -f k8s/03-haproxy.yaml
+    ```
+4.  **Access the Application:**
+    Use the `minikube service` command to get the correct URL.
+    ```bash
+    minikube service haproxy-loadbalancer-service --url
+    ```
+    Open the URL provided by the command (e.g., `http://192.168.49.2:31234`) in your browser and add `/overview` to the end.
+5.  **Stop and Clean Up:**
+    ```bash
+    kubectl delete -f k8s/01-mongodb.yaml
+    kubectl delete -f k8s/02-appointment-app.yaml
+    kubectl delete -f k8s/03-haproxy.yaml
+    ```
+    Stop Minikube: `minikube stop`.
 
-***
+### 4. Running with Kubernetes (Minikube) & Ingress
 
-# Editing this README
+This is the final and most advanced setup, deploying the application to a local Kubernetes cluster and using an Ingress to manage traffic with a custom hostname.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+1.  **Prerequisites:**
+    * Minikube installed and running (`minikube start --memory 4g --cpus 2`).
+2.  **Enable Ingress Addon:**
+    This only needs to be done once per Minikube cluster.
+    ```bash
+    minikube addons enable ingress
+    ```
+3.  **Build and Load Images into Minikube:**
+    Your local Docker images need to be made available to Minikube's internal Docker environment.
+    ```bash
+    # Build the images first
+    docker build -t appointment-app-img ./appointment-scheduler
+    docker build -t custom-mongo-img ./mongodb_custom
+    
+    # Load them into Minikube
+    minikube image load appointment-app-img
+    minikube image load custom-mongo-img
+    ```
+4.  **Apply Kubernetes Configurations:**
+    This command applies the configurations for MongoDB, the app, and the Ingress. **It ignores the `03-haproxy.yaml` file.** Ensure your `k8s/04-ingress.yaml` uses `host: appointment-app.naren`.
+    ```bash
+    kubectl apply -f k8s/01-mongodb.yaml
+    kubectl apply -f k8s/02-appointment-app.yaml
+    kubectl apply -f k8s/04-ingress.yaml
+    ```
+5.  **Set up `minikube tunnel` and Hostname:**
+    To access the Ingress via a custom hostname (`appointment-app.naren`), you need two things:
 
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+    * **Start the Tunnel:** Open a **new, separate terminal window** and run:
+        ```bash
+        minikube tunnel
+        ```
+        Enter your Mac/Linux password when prompted and **leave this terminal window running**.
+    * **Edit `/etc/hosts` file:**
+        * First, get the IP address assigned by the tunnel. In your first terminal, run `kubectl get ingress` and wait for an IP to appear in the `ADDRESS` column (usually `127.0.0.1`).
+        * Open your hosts file with administrator privileges: `sudo nano /etc/hosts`.
+        * Add the following line at the end and save the file:
+            ```
+            127.0.0.1    appointment-app.naren
+            ```
+6.  **Access the Application:**
+    You can now access your application in the browser using the custom hostname:
+    * **Overview Page:** `http://appointment-app.naren/overview`
+    * **Create Page:** `http://appointment-app.naren/create`
+7.  **Stop and Clean Up:**
+    * Stop the `minikube tunnel` process in its terminal window with `Ctrl+C`.
+    * Remove the line you added from your `/etc/hosts` file.
+    * Delete all Kubernetes resources:
+        ```bash
+        kubectl delete -f k8s/01-mongodb.yaml
+        kubectl delete -f k8s/02-appointment-app.yaml
+        kubectl delete -f k8s/04-ingress.yaml
+        ```
+    * Stop Minikube: `minikube stop`.
