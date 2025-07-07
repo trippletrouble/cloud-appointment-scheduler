@@ -1,0 +1,17 @@
+# k8s/04-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: appointment-app-ingress
+spec:
+  rules:
+    - host: appointment.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: appointment-app-service
+                port:
+                  number: 8080
