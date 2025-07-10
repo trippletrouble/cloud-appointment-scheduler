@@ -12,26 +12,9 @@ The application consists of three main pages:
 
 ## How to Run
 
-There are four main ways to run this application: locally via an IDE, with Docker Compose, or in a Kubernetes cluster (Minikube) using either HAProxy or Ingress.
+There are three main ways to run this application: with Docker Compose, or in a Kubernetes cluster (Minikube) using either HAProxy or Ingress.
 
-### 1. Running Locally (from IDE)
-
-This is ideal for development and quick tests.
-
-1.  **Start a local MongoDB instance:**
-    ```bash
-    # Ensure no other process is using port 27017
-    docker run --name dev-mongo -p 127.0.0.1:27017:27017 -d mongo
-    ```
-2.  **Configure `application.properties`:**
-    Make sure the `spring.data.mongodb.uri` in `src/main/resources/application.properties` points to your local instance:
-    ```properties
-    spring.data.mongodb.uri=mongodb://127.0.0.1:27017/appointment_db
-    ```
-3.  **Run the Application:**
-    Start the `AppointmentSchedulerApplication` main class from your IDE (e.g., IntelliJ IDEA). The application will be available at `http://localhost:8080`.
-
-### 2. Running with Docker Compose & HAProxy
+### 1. Running with Docker Compose & HAProxy
 
 This method starts the complete architecture with two app instances, a database, and a load balancer on your local machine. This uses the separate services approach.
 
@@ -53,7 +36,7 @@ This method starts the complete architecture with two app instances, a database,
     docker-compose down -v
     ```
 
-### 3. Running with Kubernetes (Minikube) & HAProxy
+### 2. Running with Kubernetes (Minikube) & HAProxy
 
 This method deploys the application to Kubernetes using HAProxy and a `NodePort` service to expose the application.
 
@@ -83,14 +66,17 @@ This method deploys the application to Kubernetes using HAProxy and a `NodePort`
     ```
     Open the URL provided by the command (e.g., `http://192.168.49.2:31234`) in your browser and add `/overview` to the end.
 5.  **Stop and Clean Up:**
+    To remove only the HAProxy resources, you can run:
     ```bash
-    kubectl delete -f k8s/01-mongodb.yaml
-    kubectl delete -f k8s/02-appointment-app.yaml
     kubectl delete -f k8s/03-haproxy.yaml
+    ```
+    To remove all deployed resources (App, MongoDB, and HAProxy), run:
+    ```bash
+    kubectl delete -f k8s/
     ```
     Stop Minikube: `minikube stop`.
 
-### 4. Running with Kubernetes (Minikube) & Ingress
+### 3. Running with Kubernetes (Minikube) & Ingress
 
 This is the final and most advanced setup, deploying the application to a local Kubernetes cluster and using an Ingress to manage traffic with a custom hostname.
 
@@ -126,7 +112,7 @@ This is the final and most advanced setup, deploying the application to a local 
         ```bash
         minikube tunnel
         ```
-        Enter your Mac/Linux password when prompted and **leave this terminal window running**.
+      Enter your Mac/Linux password when prompted and **leave this terminal window running**.
     * **Edit `/etc/hosts` file:**
         * First, get the IP address assigned by the tunnel. In your first terminal, run `kubectl get ingress` and wait for an IP to appear in the `ADDRESS` column (usually `127.0.0.1`).
         * Open your hosts file with administrator privileges: `sudo nano /etc/hosts`.
